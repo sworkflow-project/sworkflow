@@ -190,31 +190,49 @@ kernel_build()
 
 	displayDeviceInfo "$device"
 
-	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "$kernel_defconfig"
+	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "$kernel_defconfig" || {
+		log_error "error: Kernel defconfig build failed."
+		exit 1
+	}
 
 	if [[ -n "$build_clean" ]]; then
-		make O=out -j"$parallel_threads" ARCH="$device_arch" clean
-		make O=out -j"$parallel_threads" ARCH="$device_arch" mrproper
+		make O=out -j"$parallel_threads" ARCH="$device_arch" clean || {
+			log_error "error: Clean failed."
+			exit 1
+		}
+		make O=out -j"$parallel_threads" ARCH="$device_arch" mrproper || {
+			log_error "error: Mrproper failed."
+			exit 1
+		}
 	fi
 
 	start=$(date +%s)
 
-	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"
+	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" || {
+		log_error "error: Kernel build failed."
+		exit 1
+	}
 
 	if [[ -n "$do_modules" ]]; then
-		log_info "sworkflow: Installing modules"
-		make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
+			log_info "sworkflow: Installing modules"
+			make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install || {
+				log_error "error: Module installation failed."
+				exit 1
+			}
 	fi
 
 	if [[ -n "$create_dtbo" ]]; then
 		log_info "sworkflow: Creating dtbo"
 		dtbo_path="out/arch/$device_arch/boot/dtbo.img"
 		if [[ -f $dtbo_path ]]; then
-			log_warning "warning: DTBO image already present!"
+				log_warning "warning: DTBO image already present!"
 		else
 			if [[ -n "$dtbo_page_size" ]]; then
 				if [[ -n $dtbo_arch_path ]]; then
-					python3 "$SW_SRC_DIR"/utils/mkdtboimg.py create "out/arch/$device_arch/boot/dtbo.img" --page_size="$dtbo_page_size" "$dtbo_arch_path"
+					python3 "$SW_SRC_DIR"/utils/mkdtboimg.py create "out/arch/$device_arch/boot/dtbo.img" --page_size="$dtbo_page_size" "$dtbo_arch_path" || {
+						log_error "error: DTBO creation failed."
+						exit 1
+					}
 				else
 					log_error "error: kernel DTBO directory not defined!"
 					exit 22
@@ -230,31 +248,43 @@ kernel_build()
 		if [[ -n "$kernel_image_name" ]]; then
 			log_info "sworkflow: Checking kernel image!"
 			if ! is_kernel_image_present "$device_arch" "$kernel_image_name"; then
-				log_error "error: Build failed"
+				log_error "error: Build failed. Kernel image not found."
+				exit 1
 			else
 				log_info "sworkflow: Creating dist directory"
 				mkdir -p out/dist
 				dist_path="out/dist"
 				log_info "sworkflow: Copying the contents into dist"
 				kernel_image_path="out/arch/$device_arch/boot/$kernel_image_name"
-				cp "$kernel_image_path" $dist_path
+				cp "$kernel_image_path" $dist_path || {
+					log_error "error: Failed to copy kernel image."
+					exit 1
+				}
 				if [[ -n "$do_modules" ]]; then
 					log_info "sworkflow: Copying modules"
-					do_kernel_modules
+					do_kernel_modules || {
+						log_error "error: Module copy failed."
+						exit 1
+					}
 				fi
 			fi
 		else
 			log_error "error: Define $kernel_image_name to create dist"
+			exit 1
 		fi
 	fi
 
 	if [[ -n "$do_anykernel" ]]; then
 		if [[ -n "$anykernel_branch" ]]; then
 			log_info "sworkflow: Cloning Anykernel3"
-			do_anykernel "$anykernel_branch"
+			do_anykernel "$anykernel_branch" || {
+				log_error "error: AnyKernel operation failed."
+				exit 1
+			}
 		else
 			log_error "error: Define Anykernel Branch!"
 			log_error "error: Check Documentation for more"
+			exit 1
 		fi
 	fi
 
