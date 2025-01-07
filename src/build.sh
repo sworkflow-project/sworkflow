@@ -214,18 +214,18 @@ kernel_build()
 	}
 
 	if [[ -n "$do_modules" ]]; then
-			log_info "sworkflow: Installing modules"
-			make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install || {
-				log_error "error: Module installation failed."
-				exit 1
-			}
+		log_info "sworkflow: Installing modules"
+		make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install || {
+			log_error "error: Module installation failed."
+			exit 1
+		}
 	fi
 
 	if [[ -n "$create_dtbo" ]]; then
 		log_info "sworkflow: Creating dtbo"
 		dtbo_path="out/arch/$device_arch/boot/dtbo.img"
 		if [[ -f $dtbo_path ]]; then
-				log_warning "warning: DTBO image already present!"
+			log_warning "warning: DTBO image already present!"
 		else
 			if [[ -n "$dtbo_page_size" ]]; then
 				if [[ -n $dtbo_arch_path ]]; then
