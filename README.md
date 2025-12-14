@@ -1,13 +1,13 @@
 <h1 align="center">sworkflow</h1>
 
 # About
-SW- Streamlined Kernel Compilation tool
+SW - Streamlined Kernel Compilation tool
 
 sworkflow is an auto kernel compilation tool designed to streamline the process of compiling the Linux kernel and significantly reduce the overhead involved in setting up the development environment.
 
 Using sworkflow is simple and straightforward. The tool comes with a user-friendly documentation that guides developers through the setup process and kernel compilation.
 
-It is a simple and easy-to-use tool to compile Linux kernel.
+It is easy-to-use tool to compile Linux kernel.
 
 The documentation about installation can be found in Documentation repository:
 
@@ -17,7 +17,7 @@ https://github.com/sworkflow-project/Documentation
 
 ## Supported Platforms
 
-Automatic dependency installation is currently supported on Debian-based systems.
+Automatic installation of the tool is currently supported on Debian-based systems.
 
 If you want to build documentation, displayed on the website, install pip package.
 
@@ -28,7 +28,7 @@ Ubuntu LTS is the baseline platform. Dependencies on your system should be at le
 
 In the sw directory, type:
 ```
-./install
+./setup.sh
 
 ```
 This command will install sw and append the following lines at the end of .bashrc.:
@@ -51,7 +51,7 @@ sw help
 
 ## Download sw
 
-First of all, let's download sw:
+First of all, let's clone sw:
 ```
 git clone https://github.com/sworkflow/sworkflow.git
 
