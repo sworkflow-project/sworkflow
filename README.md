@@ -88,20 +88,3 @@ and don't forget to read our
 
 # Contact
 The best way to connect or get help is by creating [issues](https://github.com/danascape/sworkflow/issues) or by making a [pull request](https://github.com/danascape/sworkflow/pulls).
-
-# License
-```xml
-Copyright 2019 danascape (Saalim Quadri)
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```

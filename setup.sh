@@ -2,8 +2,7 @@
 
 #
 # Copyright (C) 2019 Saalim Quadri (danascape)
-#
-# SPDX-License-Identifier: Apache-2.0 license
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 
 declare -r app_name='sw'
