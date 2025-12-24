@@ -100,14 +100,11 @@ _uninstall-user:
 
 # Development targets
 
-check-scripts:
-	while read -r script; do shellcheck --exclude=SC1090,SC1091 $$script; done < tests/files
-
-execute-shfmt:
+format:
 	while read -r script; do shfmt -ln=bash -fn -ci -sr -w $$script; done < tests/files
 
-test: check-scripts
-	@echo "All tests passed"
+tests:
+	@./tests/run_tests.sh
 
 docs:
 	$(MAKE) -C docs html
@@ -139,9 +136,8 @@ help:
 	@echo "  sudo make uninstall Remove system installation"
 	@echo ""
 	@echo "Development:"
-	@echo "  make check-scripts  Run shellcheck on all scripts"
-	@echo "  make execute-shfmt  Format scripts with shfmt"
-	@echo "  make test           Run all tests"
+	@echo "  make tests          Run all tests"
+	@echo "  make format         Format scripts with shfmt"
 	@echo "  make docs           Build documentation"
 	@echo "  make docs-clean     Clean documentation build"
 	@echo ""
@@ -152,5 +148,5 @@ help:
 .PHONY: install uninstall
 .PHONY: _install-system _install-system-bin _install-system-src _install-system-utils _install-system-configs _install-system-man
 .PHONY: _uninstall-system _install-user _uninstall-user
-.PHONY: check-scripts execute-shfmt test docs docs-clean
+.PHONY: format tests docs docs-clean
 .PHONY: dist clean help

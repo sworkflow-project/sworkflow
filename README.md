@@ -149,9 +149,8 @@ The package will be created in the parent directory.
 ## Development
 
 ```bash
-make check-scripts  # Run shellcheck
-make execute-shfmt  # Format scripts
-make test           # Run all tests
+make tests          # Run all tests
+make format         # Format scripts
 make docs           # Build documentation
 make docs-clean     # Clean documentation build
 make help           # Show all targets
