@@ -58,7 +58,6 @@ generate_config()
 	fi
 
 	echo "sworkflow: Generating Config..."
-	sleep 2
 
 	local config_file="sworkflow.${device_name}.config"
 
