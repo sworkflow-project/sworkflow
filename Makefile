@@ -109,6 +109,12 @@ execute-shfmt:
 test: check-scripts
 	@echo "All tests passed"
 
+docs:
+	$(MAKE) -C docs html
+
+docs-clean:
+	$(MAKE) -C docs clean
+
 # Distribution targets
 
 dist:
@@ -136,6 +142,8 @@ help:
 	@echo "  make check-scripts  Run shellcheck on all scripts"
 	@echo "  make execute-shfmt  Format scripts with shfmt"
 	@echo "  make test           Run all tests"
+	@echo "  make docs           Build documentation"
+	@echo "  make docs-clean     Clean documentation build"
 	@echo ""
 	@echo "Distribution:"
 	@echo "  make dist           Create source tarball"
@@ -144,5 +152,5 @@ help:
 .PHONY: install uninstall
 .PHONY: _install-system _install-system-bin _install-system-src _install-system-utils _install-system-configs _install-system-man
 .PHONY: _uninstall-system _install-user _uninstall-user
-.PHONY: check-scripts execute-shfmt test
+.PHONY: check-scripts execute-shfmt test docs docs-clean
 .PHONY: dist clean help

@@ -1,0 +1,38 @@
+name: Build Documentation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  doc-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: docs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-docutils python3-sphinx
+
+      - name: Build documentation
+        run: |
+          make html
+
+      - name: Deploy to website
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.SECRET_TOKEN }}
+          external_repository: sworkflow-project/website
+          publish_dir: docs/output/html
+          allow_empty_commit: true

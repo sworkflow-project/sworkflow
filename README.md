@@ -152,6 +152,8 @@ The package will be created in the parent directory.
 make check-scripts  # Run shellcheck
 make execute-shfmt  # Format scripts
 make test           # Run all tests
+make docs           # Build documentation
+make docs-clean     # Clean documentation build
 make help           # Show all targets
 ```
 
@@ -164,6 +166,7 @@ sworkflow/
 ├── configs/           # Device configurations
 ├── utils/             # Python utilities (mkdtboimg.py)
 ├── man/               # Man pages
+├── docs/              # Sphinx documentation
 ├── debian/            # Debian packaging
 ├── tests/             # Test scripts
 └── Makefile           # Build system
@@ -181,6 +184,6 @@ Contributions are welcome! Please check [issues](https://github.com/sworkflow-pr
 
 ## Links
 
-- [Documentation](https://github.com/sworkflow-project/Documentation)
+- [Documentation](https://github.com/sworkflow-project/sworkflow/docs)
 - [Issues](https://github.com/sworkflow-project/issues/issues)
 - [Releases](https://github.com/sworkflow-project/sworkflow/releases)
