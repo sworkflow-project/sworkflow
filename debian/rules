@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	# Nothing to build - pure shell scripts
+
+override_dh_auto_install:
+	$(MAKE) _install-system DESTDIR=$(CURDIR)/debian/sworkflow
+
+override_dh_auto_test:
+	$(MAKE) check-scripts

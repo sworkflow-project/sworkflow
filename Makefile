@@ -46,7 +46,7 @@ endif
 
 # System installation
 
-_install-system: _install-system-bin _install-system-src _install-system-utils _install-system-configs
+_install-system: _install-system-bin _install-system-src _install-system-utils _install-system-configs _install-system-man
 	@echo "System installation complete!"
 
 _install-system-bin:
@@ -113,7 +113,7 @@ test: check-scripts
 
 dist:
 	mkdir -p $(PACKAGE)-$(VERSION)
-	cp -r sw $(SRCDIR) $(UTILSDIR) $(CONFIGDIR) Makefile README.md LICENSE setup.sh $(PACKAGE)-$(VERSION)/
+	cp -r sw $(SRCDIR) $(UTILSDIR) $(CONFIGDIR) man Makefile README.md LICENSE setup.sh $(PACKAGE)-$(VERSION)/
 	tar -czf $(PACKAGE)-$(VERSION).tar.gz $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-$(VERSION)
 

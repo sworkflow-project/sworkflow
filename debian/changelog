@@ -1,0 +1,8 @@
+sworkflow (2.0-1) unstable; urgency=medium
+
+  * Initial Debian package release
+  * Add Makefile with install/uninstall targets
+  * FHS-compliant installation paths
+  * REUSE compliant licensing
+
+ -- Saalim Quadri <danascape@gmail.com>  Tue, 24 Dec 2024 00:00:00 +0000

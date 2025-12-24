@@ -1,0 +1,38 @@
+Source: sworkflow
+Section: devel
+Priority: optional
+Maintainer: Saalim Quadri <danascape@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/sworkflow-project/sworkflow
+Vcs-Git: https://github.com/sworkflow-project/sworkflow.git
+Vcs-Browser: https://github.com/sworkflow-project/sworkflow
+Rules-Requires-Root: no
+
+Package: sworkflow
+Architecture: all
+Depends: ${misc:Depends},
+         bash (>= 4.0),
+         python3,
+         git,
+         make
+Recommends: build-essential,
+            bc,
+            flex,
+            bison,
+            libssl-dev,
+            libelf-dev
+Suggests: clang,
+          device-tree-compiler,
+          rsync
+Description: Streamlined Linux kernel compilation tool
+ sworkflow (sw) is an automated kernel compilation tool designed to
+ streamline the process of compiling the Linux kernel and significantly
+ reduce the overhead involved in setting up the development environment.
+ .
+ Features:
+  - Device-specific build configurations
+  - Cross-compiler management for ARM64/ARM32/x86
+  - Clang/LLVM build support
+  - DTBO image generation
+  - AnyKernel3 packaging integration

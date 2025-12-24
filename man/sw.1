@@ -1,0 +1,195 @@
+.\" SPDX-FileCopyrightText: 2019 Saalim Quadri <danascape@gmail.com>
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.TH SW 1 "December 2024" "sworkflow 2.0" "User Commands"
+.SH NAME
+sw \- streamlined Linux kernel compilation tool
+.SH SYNOPSIS
+.B sw
+.I command
+.RI [ device ]
+.SH DESCRIPTION
+.B sworkflow
+(sw) is an automated kernel compilation tool designed to streamline the
+process of compiling the Linux kernel and significantly reduce the overhead
+involved in setting up the development environment.
+.PP
+It manages device-specific build configurations, cross-compiler setup,
+and can package kernels using AnyKernel3.
+.SH COMMANDS
+.TP
+.BR build ", " b " " \fIdevice\fR
+Build the kernel for the specified device. Must be run from within a
+kernel source tree. The device configuration is loaded from the config
+file matching the device name.
+.TP
+.BR init ", " i
+Interactively generate a new device configuration file. Prompts for
+device name, architecture, defconfig, cross-compiler paths, and other
+build options.
+.TP
+.BR pack ", " p " " \fIdevice\fR
+Package the compiled kernel (not yet implemented).
+.TP
+.BR help ", " h
+Display help message with available commands.
+.TP
+.BR version ", " v
+Display version information.
+.SH CONFIGURATION
+Device configurations are shell scripts that define build variables.
+They are searched in the following order:
+.TP
+1.
+.I /etc/sworkflow/
+(system-wide installation)
+.TP
+2.
+.I ~/.local/sw/configs/
+(user installation)
+.TP
+3.
+.I ./
+(current directory)
+.TP
+4.
+.I ./configs/
+(configs subdirectory)
+.PP
+Configuration files are named
+.BR sworkflow. \fIdevice\fR .config
+.SS Configuration Variables
+.TP
+.B device_arch
+Target device architecture (e.g., arm64, x86_64). Required.
+.TP
+.B kernel_arch
+Kernel architecture if different from device_arch (e.g., x86 for x86_64).
+.TP
+.B kernel_defconfig
+Kernel defconfig file name. Required.
+.TP
+.B cross_compile
+Path prefix for 64-bit cross-compiler (e.g., aarch64-linux-gnu-).
+.TP
+.B cross_compile_arm32
+Path prefix for 32-bit ARM cross-compiler.
+.TP
+.B use_clang
+Set to 1 to use Clang/LLVM for compilation.
+.TP
+.B do_modules
+Set to 1 to install kernel modules.
+.TP
+.B build_silent
+Set to 1 for silent build output.
+.TP
+.B build_clean
+Set to 1 to run make clean before building.
+.TP
+.B create_dist
+Set to 1 to create a distribution directory with build artifacts.
+.TP
+.B kernel_image_name
+Name of the kernel image (e.g., Image.gz-dtb).
+.TP
+.B create_dtbo
+Set to 1 to create device tree overlay image.
+.TP
+.B dtbo_page_size
+Page size for DTBO image.
+.TP
+.B dtbo_arch_path
+Path to device tree files relative to out directory.
+.TP
+.B do_anykernel
+Set to 1 to package kernel with AnyKernel3.
+.TP
+.B anykernel_branch
+AnyKernel3 repository branch to use.
+.SH FILES
+.TP
+.I /usr/bin/sw
+Main executable (system installation).
+.TP
+.I /usr/share/sworkflow/src/
+Source modules (system installation).
+.TP
+.I /usr/share/sworkflow/utils/
+Utility scripts including mkdtboimg.py.
+.TP
+.I /etc/sworkflow/
+System-wide device configurations.
+.TP
+.I ~/.local/bin/sw
+Main executable (user installation).
+.TP
+.I ~/.local/sw/
+User installation directory.
+.TP
+.I sworkflow.<device>.config
+Device-specific configuration file.
+.SH ENVIRONMENT
+.TP
+.B SW_SRC_DIR
+Override the source directory path.
+.TP
+.B SW_CONFIG_DIR
+Override the configuration directory path.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 22
+Invalid argument or missing required configuration.
+.TP
+.B 125
+Operation cancelled or configuration error.
+.SH EXAMPLES
+Build kernel for mainline x86_64:
+.PP
+.RS
+.nf
+cd /path/to/linux
+sw build mainline
+.fi
+.RE
+.PP
+Build kernel for ARM64 device:
+.PP
+.RS
+.nf
+cd /path/to/kernel-source
+sw b X00P-3.18
+.fi
+.RE
+.PP
+Generate a new device configuration:
+.PP
+.RS
+.nf
+sw init
+.fi
+.RE
+.PP
+Check version:
+.PP
+.RS
+.nf
+sw version
+.fi
+.RE
+.SH SEE ALSO
+.BR make (1),
+.BR gcc (1),
+.BR clang (1)
+.SH BUGS
+Report bugs at: https://github.com/sworkflow-project/sworkflow/issues
+.SH AUTHOR
+Written by Saalim Quadri <danascape@gmail.com>.
+.SH COPYRIGHT
+Copyright \(co 2019 Saalim Quadri.
+License GPLv3+: GNU GPL version 3 or later.
+.PP
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.

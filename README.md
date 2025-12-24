@@ -1,90 +1,186 @@
-<h1 align="center">sworkflow</h1>
+# sworkflow
 
-# About
-SW - Streamlined Kernel Compilation tool
+Streamlined Linux Kernel Compilation Tool
 
-sworkflow is an auto kernel compilation tool designed to streamline the process of compiling the Linux kernel and significantly reduce the overhead involved in setting up the development environment.
+sworkflow (sw) is an automated kernel compilation tool designed to streamline the process of compiling the Linux kernel and significantly reduce the overhead involved in setting up the development environment.
 
-Using sworkflow is simple and straightforward. The tool comes with a user-friendly documentation that guides developers through the setup process and kernel compilation.
+## Features
 
-It is easy-to-use tool to compile Linux kernel.
+- Device-specific build configurations
+- Cross-compiler management for ARM64/ARM32/x86
+- Clang/LLVM build support
+- DTBO image generation
+- AnyKernel3 packaging integration
+- Interactive config generation
 
-The documentation about installation can be found in Documentation repository:
+## Installation
 
-https://github.com/sworkflow-project/Documentation
+### From Debian Package (Recommended)
 
-# Install
+Download the latest `.deb` from [Releases](https://github.com/sworkflow-project/sworkflow/releases):
 
-## Supported Platforms
-
-Automatic installation of the tool is currently supported on Debian-based systems.
-
-If you want to build documentation, displayed on the website, install pip package.
-
-Ubuntu LTS is the baseline platform. Dependencies on your system should be at least as recent as those provided by Ubuntu LTS.
-
-
-## Manual Install
-
-In the sw directory, type:
-```
-./setup.sh
-
-```
-This command will install sw and append the following lines at the end of .bashrc.:
-```
-# sw
-PATH=$HOME/sworkflow/bin:$PATH #sw
-
+```bash
+sudo dpkg -i sworkflow_*.deb
+sudo apt-get install -f  # Install dependencies if needed
 ```
 
-If another shell is used(for example, ksh), manually add path to sw to PATH environment variable.
+### From Source (User Install)
 
-To check if installation was ok, open another terminal and type:
+Installs to `~/.local/` - no root required:
 
-```
-sw help
-
-```
-
-## Workflow setup
-
-## Download sw
-
-First of all, let's clone sw:
-```
-git clone https://github.com/sworkflow/sworkflow.git
-
-```
-## Installing sw
-
-First, cd into the repository you cloned:
-```
+```bash
+git clone https://github.com/sworkflow-project/sworkflow.git
 cd sworkflow
-```
-Then install sw:
-```
-./setup.sh i
+make install
 ```
 
-After installing sw, you should be able to call sw directly from the command line. For example, to display sw's help message:
+Ensure `~/.local/bin` is in your PATH:
 
-```
-sw help
-```
-
-After installing, you should check that everything is working as expected. Try running:
-
-```
-sw version
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-# Contributing
-We appreciate that you want to contribute to the project's improvement.
-If you are looking for a good starting point, check
-[these issues](https://github.com/danascape/sworkflow/labels/good%20first%20issue)
-and don't forget to read our
-[Contributor's Guide](https://github.com/danascape/sworkflow/blob/main/CONTRIBUTING.md).
+### From Source (System-wide)
 
-# Contact
-The best way to connect or get help is by creating [issues](https://github.com/danascape/sworkflow/issues) or by making a [pull request](https://github.com/danascape/sworkflow/pulls).
+Installs to `/usr/`:
+
+```bash
+git clone https://github.com/sworkflow-project/sworkflow.git
+cd sworkflow
+sudo make install
+```
+
+### Uninstall
+
+```bash
+make uninstall        # Remove user installation
+sudo make uninstall   # Remove system installation
+```
+
+## Dependencies
+
+**Required:**
+- bash (>= 4.0)
+- python3
+- git
+- make
+
+**Recommended (for kernel building):**
+- build-essential
+- bc, flex, bison
+- libssl-dev, libelf-dev
+
+**Optional:**
+- clang (for LLVM builds)
+- device-tree-compiler (for DTBO)
+
+## Usage
+
+```bash
+sw <command> [device]
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `sw build <device>` | Build kernel for specified device |
+| `sw init` | Generate new device configuration |
+| `sw help` | Display help message |
+| `sw version` | Display version |
+
+### Examples
+
+Build kernel for a device:
+
+```bash
+cd /path/to/kernel-source
+sw build mainline
+```
+
+Generate a new device config:
+
+```bash
+sw init
+```
+
+### Man Page
+
+After installation, view the full manual:
+
+```bash
+man sw
+```
+
+## Configuration
+
+Device configurations are stored as shell scripts named `sworkflow.<device>.config`.
+
+**Search order:**
+1. `/etc/sworkflow/` (system installation)
+2. `~/.local/sw/configs/` (user installation)
+3. Current directory
+4. `./configs/` subdirectory
+
+### Configuration Variables
+
+| Variable | Description |
+|----------|-------------|
+| `device_arch` | Target architecture (arm64, x86_64) |
+| `kernel_defconfig` | Kernel defconfig file |
+| `cross_compile` | Cross-compiler prefix |
+| `cross_compile_arm32` | 32-bit ARM cross-compiler |
+| `use_clang` | Use Clang/LLVM (set to 1) |
+| `do_modules` | Install kernel modules |
+| `create_dtbo` | Create DTBO image |
+| `do_anykernel` | Package with AnyKernel3 |
+
+See `configs/sworkflow_template.config` for all options.
+
+## Building Debian Package
+
+```bash
+sudo apt-get install devscripts debhelper shellcheck
+dpkg-buildpackage -us -uc -b
+```
+
+The package will be created in the parent directory.
+
+## Development
+
+```bash
+make check-scripts  # Run shellcheck
+make execute-shfmt  # Format scripts
+make test           # Run all tests
+make help           # Show all targets
+```
+
+## Project Structure
+
+```
+sworkflow/
+├── sw                 # Main executable
+├── src/               # Source modules
+├── configs/           # Device configurations
+├── utils/             # Python utilities (mkdtboimg.py)
+├── man/               # Man pages
+├── debian/            # Debian packaging
+├── tests/             # Test scripts
+└── Makefile           # Build system
+```
+
+## License
+
+GPL-3.0-or-later
+
+Copyright (c) 2019 Saalim Quadri
+
+## Contributing
+
+Contributions are welcome! Please check [issues](https://github.com/sworkflow-project/issues/issues) for a good starting point.
+
+## Links
+
+- [Documentation](https://github.com/sworkflow-project/Documentation)
+- [Issues](https://github.com/sworkflow-project/issues/issues)
+- [Releases](https://github.com/sworkflow-project/sworkflow/releases)
