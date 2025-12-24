@@ -31,7 +31,7 @@ jobs:
 
       - name: Install sworkflow
         run: |
-          ./setup.sh i
+          make install
 
       - name: Check sworkflow
         run: |

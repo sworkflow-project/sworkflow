@@ -5,19 +5,28 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-SWORKFLOW=${SWORKFLOW:-'sw'}
-
-# Global Paths
-
-# SW source directory
-if [[ -f '/usr/bin/sw' ]]; then
-	SW_SRC_DIR="/usr/share/sw"
-elif [[ -f $HOME/sworkflow/sw ]]; then
-	SW_SRC_DIR="$HOME/sworkflow"
-else
-	# SW_SRC_DIR="${SW_SRC_DIR:-"$HOME/.local/sw"}/${SWORKFLOW}"
+# Determine installation paths
+# Priority: 1) System install 2) User install 3) Local development
+if [[ -f '/usr/bin/sw' && -d '/usr/share/sworkflow' ]]; then
+	# System-wide installation (Debian package / make install)
+	SW_SRC_DIR="/usr/share/sworkflow"
+	SW_CONFIG_DIR="/etc/sworkflow"
+elif [[ -d "$HOME/.local/share/sworkflow" ]]; then
+	# User installation (XDG compliant)
+	SW_SRC_DIR="$HOME/.local/share/sworkflow"
+	SW_CONFIG_DIR="$HOME/.config/sworkflow"
+elif [[ -d "$HOME/.local/sw" ]]; then
+	# Legacy user installation (setup.sh)
 	SW_SRC_DIR="$HOME/.local/sw"
+	SW_CONFIG_DIR="$HOME/.local/sw/configs"
+else
+	# Local development (running from source)
+	SW_SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	SW_CONFIG_DIR="$SW_SRC_DIR/configs"
 fi
+
+export SW_SRC_DIR
+export SW_CONFIG_DIR
 
 sw()
 {

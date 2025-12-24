@@ -18,6 +18,7 @@ declare -r swbinpath="$HOME/.local/bin/$app_name"
 # Source code references
 declare -r CONFIGDIR='configs'
 declare -r SRCDIR='src'
+declare -r UTILSDIR='utils'
 
 safe_append()
 {
@@ -63,6 +64,7 @@ sworkflow_synchronize_files()
 	cp $app_name "$swbinpath"
 	rsync -vr $CONFIGDIR "$srcpath"
 	rsync -vr $SRCDIR "$srcpath"
+	rsync -vr $UTILSDIR "$srcpath"
 
 	if [[ -z "$(which bash)" ]]; then
 		echo "error: No bash"

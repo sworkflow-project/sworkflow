@@ -9,42 +9,43 @@
 . "$SW_SRC_DIR"/src/sw_functions.sh --source-only
 
 # Check if the kernel config already exists for a particular device.
-# This check is being performed to add support for official devices.
+# Search order: 1) SW_CONFIG_DIR 2) Current directory 3) ./configs/
 check_kernel()
 {
-	#	parse_build_arguments "$1"
+	local device="$1"
+	local config_file="sworkflow.${device}.config"
+	local found_config=""
 
-	local device
-	local device_config_dir
-	device="$1"
-	if [[ $device == "" ]]; then
+	if [[ -z "$device" ]]; then
 		log_error "error: Device name is empty!"
 		exit 125
 	fi
-	device_config_dir="configs"
+
 	log_info "sworkflow: Checking if kernel config exists for $device"
-	if [[ -n $(find -L "$SW_SRC_DIR"/"$device_config_dir" -maxdepth 2 -name "sworkflow.$device.config") ]]; then
-		for dir in $device_config_dir; do
-			for f in $(cd "$SW_SRC_DIR" && test -d "$dir" &&
-				find -L "$SW_SRC_DIR" -maxdepth 4 -name "sworkflow.$device.config" | sort); do
-				log_info "sworkflow: Including $f"
-				. "$f" --source-only
-			done
-		done
-	elif [[ -n $(find -L "$(pwd)" -maxdepth 2 -name "sworkflow.$device.config") ]]; then
-		for dir in $device_config_dir; do
-			for f in $(cd "$(pwd)" && test -d "$dir" &&
-				find -L "$(pwd)" -maxdepth 4 -name "sworkflow.$device.config" | sort); do
-				log_info "sworkflow: Including $f"
-				. "$f" --source-only
-			done
-		done
-	else
-		log_error "error: No config file found"
-		log_error "error: Refer to docs for more"
-		exit 125
+
+	# Search in SW_CONFIG_DIR (system or user config directory)
+	if [[ -n "$SW_CONFIG_DIR" && -f "$SW_CONFIG_DIR/$config_file" ]]; then
+		found_config="$SW_CONFIG_DIR/$config_file"
+	# Search in current working directory
+	elif [[ -f "$(pwd)/$config_file" ]]; then
+		found_config="$(pwd)/$config_file"
+	# Search in ./configs/ subdirectory
+	elif [[ -f "$(pwd)/configs/$config_file" ]]; then
+		found_config="$(pwd)/configs/$config_file"
 	fi
 
+	if [[ -n "$found_config" ]]; then
+		log_info "sworkflow: Including $found_config"
+		# shellcheck source=/dev/null
+		. "$found_config"
+	else
+		log_error "error: No config file found for device: $device"
+		log_error "error: Searched in:"
+		log_error "       - $SW_CONFIG_DIR/"
+		log_error "       - $(pwd)/"
+		log_error "       - $(pwd)/configs/"
+		exit 125
+	fi
 }
 
 do_anykernel()
