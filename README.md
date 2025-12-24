@@ -85,6 +85,7 @@ sw <command> [device]
 | Command | Description |
 |---------|-------------|
 | `sw build <device>` | Build kernel for specified device |
+| `sw doctor [device]` | Show available configs and current settings |
 | `sw init` | Generate new device configuration |
 | `sw help` | Display help message |
 | `sw version` | Display version |

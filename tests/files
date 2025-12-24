@@ -2,6 +2,7 @@ setup.sh
 sw
 src/build.sh
 src/build_vars.sh
+src/doctor.sh
 src/help.sh
 src/init.sh
 src/sw_color.sh

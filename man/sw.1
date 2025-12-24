@@ -22,6 +22,13 @@ Build the kernel for the specified device. Must be run from within a
 kernel source tree. The device configuration is loaded from the config
 file matching the device name.
 .TP
+.BR doctor ", " d " [" \fIdevice\fR "]"
+Show available device configurations and their settings. When run without
+a device argument, lists all available configs and their locations. When
+a device is specified, displays the detailed configuration for that device
+including architecture, defconfig, compiler settings, and build options.
+Also indicates whether the current directory is a kernel source tree.
+.TP
 .BR init ", " i
 Interactively generate a new device configuration file. Prompts for
 device name, architecture, defconfig, cross-compiler paths, and other
@@ -177,6 +184,22 @@ Check version:
 .RS
 .nf
 sw version
+.fi
+.RE
+.PP
+List available configs:
+.PP
+.RS
+.nf
+sw doctor
+.fi
+.RE
+.PP
+Show detailed config for a device:
+.PP
+.RS
+.nf
+sw d billie
 .fi
 .RE
 .SH SEE ALSO

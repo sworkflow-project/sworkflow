@@ -11,6 +11,7 @@ sworkflow_help()
 
 	echo -e "\nCommands\n" \
 		"\tbuild,b - Build Kernel\n" \
+		"\tdoctor,d - Show current config for kernel source\n" \
 		"\tinit,i - Generate sworkflow config\n" \
 		"\thelp,h - Print this help message\n" \
 		"\tversion,v - Print version\n"

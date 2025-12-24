@@ -76,6 +76,13 @@ sw()
 				sworkflow_version
 			)
 			;;
+		doctor | d)
+			(
+				. "$SW_SRC_DIR"/src/doctor.sh --source-only
+
+				sworkflow_doctor "$2"
+			)
+			;;
 		*)
 			(
 				. "$SW_SRC_DIR"/src/help.sh --source-only
