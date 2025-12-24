@@ -35,8 +35,9 @@ jobs:
           echo "Makefile VERSION: $MAKE_VER"
 
           # Get version from debian/changelog
-          DEB_VER=$(head -1 debian/changelog | grep -oP '\(\K[^)]+')
-          echo "debian/changelog: $DEB_VER"
+          DEB_FULL_VER=$(head -1 debian/changelog | grep -oP '\(\K[^)]+')
+          DEB_VER=$(echo "$DEB_FULL_VER" | sed 's/-[0-9]*$//')
+          echo "debian/changelog: $DEB_FULL_VER (upstream: $DEB_VER)"
 
           # Compare versions
           if [ "$MAKE_VER" != "$DEB_VER" ]; then
@@ -129,7 +130,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y devscripts debhelper shellcheck lintian
+          sudo apt-get install -y build-essential devscripts debhelper shellcheck lintian
 
       - name: Build Debian package
         run: dpkg-buildpackage -us -uc -b
