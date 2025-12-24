@@ -1,14 +1,25 @@
-name: Build Documentation
+name: Documentation
 
 on:
-  pull_request:
   push:
     branches:
       - main
+    paths:
+      - 'docs/**'
+      - 'man/**'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'man/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  doc-build:
+  build:
+    name: Build Documentation
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -19,20 +30,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3 python3-docutils python3-sphinx
+          python -m pip install --upgrade pip
+          pip install sphinx
 
       - name: Build documentation
-        run: |
-          make html
+        run: make html
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: documentation
+          path: docs/output/html
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Website
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download documentation artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: documentation
+          path: html
 
       - name: Deploy to website
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.SECRET_TOKEN }}
+          personal_token: ${{ secrets.SECRET_TOKEN }}
           external_repository: sworkflow-project/website
-          publish_dir: docs/output/html
-          allow_empty_commit: true
+          publish_dir: html
+          allow_empty_commit: false

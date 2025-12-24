@@ -1,0 +1,149 @@
+name: Integration Tests
+
+on:
+  push:
+    paths:
+      - 'sw'
+      - 'src/**'
+      - 'Makefile'
+      - 'debian/**'
+  pull_request:
+    paths:
+      - 'sw'
+      - 'src/**'
+      - 'Makefile'
+      - 'debian/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version-check:
+    name: Version Consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check version consistency
+        run: |
+          echo "Checking version consistency"
+
+          # Get version from Makefile
+          MAKE_VER=$(grep '^VERSION' Makefile | cut -d= -f2 | tr -d ' ')
+          echo "Makefile VERSION: $MAKE_VER"
+
+          # Get version from debian/changelog
+          DEB_VER=$(head -1 debian/changelog | grep -oP '\(\K[^)]+')
+          echo "debian/changelog: $DEB_VER"
+
+          # Compare versions
+          if [ "$MAKE_VER" != "$DEB_VER" ]; then
+            echo "ERROR: Version mismatch!"
+            echo "  Makefile: $MAKE_VER"
+            echo "  debian/changelog: $DEB_VER"
+            exit 1
+          fi
+
+          echo "Version check passed: $MAKE_VER"
+
+  install-user:
+    name: User Install/Uninstall
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Test user installation
+        run: |
+          echo "Testing user installation"
+          make install
+
+          # Verify installation
+          [ -f "$HOME/.local/bin/sw" ] || { echo "sw not found in ~/.local/bin"; exit 1; }
+          [ -d "$HOME/.local/sw/src" ] || { echo "src not found in ~/.local/sw"; exit 1; }
+
+          # Add to PATH and test
+          export PATH="$HOME/.local/bin:$PATH"
+          sw version
+          sw help
+
+          echo "User installation successful!"
+
+      - name: Test user uninstallation
+        run: |
+          echo "Testing user uninstallation"
+          make uninstall
+
+          # Verify uninstallation
+          [ ! -f "$HOME/.local/bin/sw" ] || { echo "sw still exists after uninstall"; exit 1; }
+          [ ! -d "$HOME/.local/sw" ] || { echo "~/.local/sw still exists after uninstall"; exit 1; }
+
+          echo "User uninstallation successful!"
+
+  install-system:
+    name: System Install/Uninstall
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Test system installation
+        run: |
+          echo "Testing system installation"
+          sudo make install
+
+          # Verify installation
+          [ -f "/usr/bin/sw" ] || { echo "sw not found in /usr/bin"; exit 1; }
+          [ -d "/usr/share/sworkflow/src" ] || { echo "src not found in /usr/share/sworkflow"; exit 1; }
+          [ -d "/etc/sworkflow" ] || { echo "/etc/sworkflow not found"; exit 1; }
+          [ -f "/usr/share/man/man1/sw.1" ] || { echo "man page not found"; exit 1; }
+
+          # Test commands
+          sw version
+          sw help
+          man -w sw
+
+          echo "System installation successful!"
+
+      - name: Test system uninstallation
+        run: |
+          echo "Testing system uninstallation"
+          sudo make uninstall
+
+          # Verify uninstallation
+          [ ! -f "/usr/bin/sw" ] || { echo "sw still exists after uninstall"; exit 1; }
+          [ ! -d "/usr/share/sworkflow" ] || { echo "/usr/share/sworkflow still exists"; exit 1; }
+          [ ! -d "/etc/sworkflow" ] || { echo "/etc/sworkflow still exists"; exit 1; }
+
+          echo "System uninstallation successful!"
+
+  debian-package:
+    name: Debian Package Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y devscripts debhelper shellcheck lintian
+
+      - name: Build Debian package
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Run lintian
+        run: lintian ../sworkflow_*.deb
+
+      - name: Test package installation
+        run: |
+          sudo dpkg -i ../sworkflow_*.deb
+          sw version
+          sw help
+
+      - name: Test package removal
+        run: |
+          sudo dpkg -r sworkflow
+          [ ! -f "/usr/bin/sw" ] || { echo "sw still exists after package removal"; exit 1; }

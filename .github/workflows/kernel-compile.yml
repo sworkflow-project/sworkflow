@@ -1,0 +1,89 @@
+name: Kernel Compile Test
+
+on:
+  push:
+    paths:
+      - 'sw'
+      - 'src/**'
+      - 'configs/**'
+      - 'tests/build/**'
+  pull_request:
+    paths:
+      - 'sw'
+      - 'src/**'
+      - 'configs/**'
+      - 'tests/build/**'
+  schedule:
+    # Weekly test on Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Mainline Kernel
+            script: mainline_compile_test.sh
+            cache-key: mainline
+          - name: Android 3.18 (ARM64)
+            script: arm64_compile_test.sh
+            cache-key: android-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget \
+            python3 gcc clang libssl-dev rsync flex bison device-tree-compiler \
+            libelf-dev libncurses-dev
+
+      - name: Cache toolchains
+        if: matrix.cache-key == 'android-arm64'
+        uses: actions/cache@v5
+        with:
+          path: tc/
+          key: toolchains-${{ matrix.cache-key }}-${{ runner.os }}
+          restore-keys: |
+            toolchains-${{ matrix.cache-key }}-
+
+      - name: Install sworkflow
+        run: make install
+
+      - name: Verify installation
+        run: |
+          which sw
+          sw version
+
+      - name: Compile kernel
+        run: bash tests/build/${{ matrix.script }}
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-log-${{ matrix.cache-key }}
+          path: |
+            **/build.log
+            **/*.log
+          retention-days: 7

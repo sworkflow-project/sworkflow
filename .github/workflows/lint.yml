@@ -1,0 +1,51 @@
+name: Lint
+
+on:
+  push:
+    paths:
+      - '**.sh'
+      - 'sw'
+      - 'tests/files'
+  pull_request:
+    paths:
+      - '**.sh'
+      - 'sw'
+      - 'tests/files'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run ShellCheck
+        run: |
+          while read -r script; do
+            echo "Checking: $script"
+            shellcheck --exclude=SC1090,SC1091 "$script"
+          done < tests/files
+
+  shfmt:
+    name: shfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run shfmt check
+        uses: luizm/action-sh-checker@v0.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHFMT_OPTS: -ln=bash -fn -ci -sr
+        with:
+          sh_checker_comment: true
+          sh_checker_exclude: "Documentation assets configs utils docs debian"
+          sh_checker_shfmt_disable: false
+          sh_checker_shellcheck_disable: true
+          sh_checker_checkbashisms_enable: false
