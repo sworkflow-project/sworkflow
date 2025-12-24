@@ -9,7 +9,7 @@ jobs:
       - name: Run the sh-checker
         uses: luizm/action-sh-checker@v0.3.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SECRET_TOKEN }}
           SHFMT_OPTS: -ln=bash -fn -ci -sr # arguments to shfmt.
         with:
           sh_checker_comment: true
