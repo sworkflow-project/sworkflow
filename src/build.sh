@@ -158,39 +158,28 @@ kernel_build()
 			"$clang_triple")
 	fi
 
-	if [[ -n "$device_arch" ]]; then
-		if [[ -n $kernel_arch ]]; then
-			if [[ -n "$kernel_defconfig" ]]; then
-				if [[ -f arch/"$kernel_arch"/configs/"$kernel_defconfig" ]]; then
-					log_info ""
-				else
-					log_error "error: Device Defconfig not found!"
-					exit 22
-				fi
-			else
-				log_error "error: Device Defconfig not defined!"
-			fi
-		else
-			if [[ -n "$kernel_defconfig" ]]; then
-				if [[ -f arch/$device_arch/configs/"$kernel_defconfig" ]]; then
-					log_info ""
-				else
-					log_error "error: Device Defconfig not found!"
-					exit 22
-				fi
-			else
-				log_error "error: Device Defconfig not defined!"
-				exit 22
-			fi
-		fi
-	else
+	if [[ -z "$device_arch" ]]; then
 		log_error "error: Device architecture not defined!"
+		exit 22
+	fi
+
+	if [[ -z "$kernel_defconfig" ]]; then
+		log_error "error: Device Defconfig not defined!"
+		exit 22
+	fi
+
+	# Split kernel_defconfig into an array (if)
+	read -ra defconfigs <<< "$kernel_defconfig"
+
+	local configs_arch="${kernel_arch:-$device_arch}"
+	if [[ ! -f "arch/$configs_arch/configs/${defconfigs[0]}" ]]; then
+		log_error "error: Device Defconfig not found: ${defconfigs[0]}"
 		exit 22
 	fi
 
 	displayDeviceInfo "$device"
 
-	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "$kernel_defconfig"
+	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" ${kernel_defconfig}
 
 	if [[ -n "$build_clean" ]]; then
 		make O=out -j"$parallel_threads" ARCH="$device_arch" clean
