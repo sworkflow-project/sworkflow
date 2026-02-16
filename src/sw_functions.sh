@@ -37,8 +37,9 @@ is_kernel_image_present()
 {
 	local -r DEVICE_ARCH="$1"
 	local -r OBJ="$2"
+	local -r OUT_DIR_PATH="${OUT_DIR:-out}"
 
-	if [[ -f "out/arch/${DEVICE_ARCH}/boot/${OBJ}" ]]; then
+	if [[ -f "${OUT_DIR_PATH}/arch/${DEVICE_ARCH}/boot/${OBJ}" ]]; then
 		return 0
 	fi
 	return 1

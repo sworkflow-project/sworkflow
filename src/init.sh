@@ -56,6 +56,7 @@ generate_config()
 		read -rp "Enter DTBO Page Size: " dtbo_page_size
 		read -rp "Enter DTBO Path relative to outdir: " dtbo_arch_path
 	fi
+	read -rp "Enter output directory (default: out): " out_dir
 
 	echo "sworkflow: Generating Config..."
 
@@ -110,6 +111,14 @@ EOF
 create_dtbo=1
 dtbo_page_size=${dtbo_page_size}
 dtbo_arch_path=${dtbo_arch_path}
+EOF
+	fi
+
+	if [[ -n $out_dir ]]; then
+		cat >> "$config_file" << EOF
+
+## Output directory
+out_dir=${out_dir}
 EOF
 	fi
 

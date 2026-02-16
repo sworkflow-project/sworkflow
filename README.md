@@ -135,6 +135,7 @@ Device configurations are stored as shell scripts named `sworkflow.<device>.conf
 | `do_modules` | Install kernel modules |
 | `create_dtbo` | Create DTBO image |
 | `do_anykernel` | Package with AnyKernel3 |
+| `out_dir` | Output directory (default: `out`) |
 
 See `configs/sworkflow_template.config` for all options.
 
