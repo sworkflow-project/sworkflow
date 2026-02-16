@@ -60,31 +60,31 @@ do_anykernel()
 	fi
 	cd AnyKernel3/ || log_error "error: Directory not Found"
 	make clean
-	cp -r ../out/dist/* ./
+	cp -r ../"${OUT_DIR}/dist/"* ./
 	make
 }
 
 do_kernel_modules()
 {
-	if [[ -d "out/dist/modules" ]]; then
+	if [[ -d "${OUT_DIR}/dist/modules" ]]; then
 		log_info "sworkflow: Removing old modules"
-		rm -rf out/dist/modules
+		rm -rf "${OUT_DIR}/dist/modules"
 	fi
-	mkdir out/dist/modules
+	mkdir -p "${OUT_DIR}/dist/modules"
 
 	modules=()
 
 	while IFS= read -r -d $'\0' file; do
 		modules+=("$file")
-	done < <(find out/modules/lib/modules/ -name '*.ko' -print0)
+	done < <(find "${OUT_DIR}/modules/lib/modules/" -name '*.ko' -print0)
 
 	for file in "${modules[@]}"; do
 		cp "$file" "$dist_path/modules/"
 	done
 
-	# cp $(find out/modules/lib/modules/* -name '*.ko') $dist_path/modules/
-	cp out/modules/lib/modules/*/modules.{alias,dep,softdep} "$dist_path"/modules
-	cp out/modules/lib/modules/*/modules.order "$dist_path"/modules/modules.load
+	# cp $(find ${OUT_DIR}/modules/lib/modules/* -name '*.ko') $dist_path/modules/
+	cp "${OUT_DIR}"/modules/lib/modules/*/modules.{alias,dep,softdep} "$dist_path"/modules
+	cp "${OUT_DIR}"/modules/lib/modules/*/modules.order "$dist_path"/modules/modules.load
 	sed -i 's/\(kernel\/[^: ]*\/\)\([^: ]*\.ko\)/\/vendor\/lib\/modules\/\2/g' "$dist_path"/modules/modules.dep
 	sed -i 's/.*\///g' "$dist_path"/modules/modules.load
 
@@ -116,7 +116,7 @@ displayDeviceInfo()
 	log_info "HOST_OS=$HOST_OS"
 	log_info "HOST_OS_EXTRA=$HOST_OS_EXTRA"
 	log_info "HOST_PATH=$PATH"
-	log_info "OUT_DIR=out" # HardCode this for now.
+	log_info "OUT_DIR=$OUT_DIR"
 	log_info "============================================"
 }
 
@@ -125,6 +125,8 @@ kernel_build()
 	device="$3"
 	check_kernel "$device"
 	log_info "sworkflow: Starting Kernel Build!"
+	OUT_DIR="${out_dir:-out}"
+	export OUT_DIR
 
 	if [[ -z "$(command -v nproc)" ]]; then
 		parallel_threads="$(nproc --all)"
@@ -179,31 +181,31 @@ kernel_build()
 
 	displayDeviceInfo "$device"
 
-	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" ${kernel_defconfig}
+	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "${kernel_defconfig}"
 
 	if [[ -n "$build_clean" ]]; then
-		make O=out -j"$parallel_threads" ARCH="$device_arch" clean
-		make O=out -j"$parallel_threads" ARCH="$device_arch" mrproper
+		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" clean
+		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" mrproper
 	fi
 
 	start=$(date +%s)
 
-	make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"
+	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"
 
 	if [[ -n "$do_modules" ]]; then
 		log_info "sworkflow: Installing modules"
-		make O=out -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
+		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 	fi
 
 	if [[ -n "$create_dtbo" ]]; then
 		log_info "sworkflow: Creating dtbo"
-		dtbo_path="out/arch/$device_arch/boot/dtbo.img"
+		dtbo_path="${OUT_DIR}/arch/$device_arch/boot/dtbo.img"
 		if [[ -f $dtbo_path ]]; then
 			log_warning "warning: DTBO image already present!"
 		else
 			if [[ -n "$dtbo_page_size" ]]; then
 				if [[ -n $dtbo_arch_path ]]; then
-					python3 "$SW_SRC_DIR"/utils/mkdtboimg.py create "out/arch/$device_arch/boot/dtbo.img" --page_size="$dtbo_page_size" "$dtbo_arch_path"
+					python3 "$SW_SRC_DIR"/utils/mkdtboimg.py create "${OUT_DIR}/arch/$device_arch/boot/dtbo.img" --page_size="$dtbo_page_size" "$dtbo_arch_path"
 				else
 					log_error "error: kernel DTBO directory not defined!"
 					exit 22
@@ -222,11 +224,11 @@ kernel_build()
 				log_error "error: Build failed"
 			else
 				log_info "sworkflow: Creating dist directory"
-				mkdir -p out/dist
-				dist_path="out/dist"
+				mkdir -p "${OUT_DIR}/dist"
+				dist_path="${OUT_DIR}/dist"
 				log_info "sworkflow: Copying the contents into dist"
-				kernel_image_path="out/arch/$device_arch/boot/$kernel_image_name"
-				cp "$kernel_image_path" $dist_path
+				kernel_image_path="${OUT_DIR}/arch/$device_arch/boot/$kernel_image_name"
+				cp "$kernel_image_path" "$dist_path"
 				if [[ -n "$do_modules" ]]; then
 					log_info "sworkflow: Copying modules"
 					do_kernel_modules
