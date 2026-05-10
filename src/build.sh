@@ -181,7 +181,7 @@ kernel_build()
 
 	displayDeviceInfo "$device"
 
-	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "${kernel_defconfig}"
+	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "${defconfigs[@]}"
 
 	if [[ -n "$build_clean" ]]; then
 		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" clean
