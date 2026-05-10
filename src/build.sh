@@ -91,6 +91,35 @@ do_kernel_modules()
 
 }
 
+install_ext_modules()
+{
+	local ext_mod_entry mod_path mod_type
+	local -a ext_mod_list
+
+	read -ra ext_mod_list <<< "$ext_modules"
+
+	for ext_mod_entry in "${ext_mod_list[@]}"; do
+		mod_path="${ext_mod_entry%%:*}"
+		mod_type="${ext_mod_entry#*:}"
+		if [[ "$mod_type" == "$mod_path" ]]; then
+			mod_type=""
+		fi
+
+		log_info "sworkflow: Installing external module: $mod_path"
+		if [[ "$mod_type" == "kbuild" ]]; then
+			if ! make -C "$PWD" M="$mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 modules_install; then
+				log_error "error: External module install failed: $mod_path"
+				exit 1
+			fi
+		else
+			if ! make -C "$mod_path" KERNEL_SRC="$PWD" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 modules_install; then
+				log_error "error: External module install failed: $mod_path"
+				exit 1
+			fi
+		fi
+	done
+}
+
 build_ext_modules()
 {
 	local ext_mod_entry mod_path mod_type
@@ -244,6 +273,10 @@ kernel_build()
 	if [[ -n "$do_modules" ]]; then
 		log_info "sworkflow: Installing modules"
 		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
+
+		if [[ -n "$ext_modules" ]]; then
+			install_ext_modules
+		fi
 
 		if [[ ! -f "$OUT_DIR/System.map" ]]; then
 			log_error "error: System.map not found, cannot run depmod"
