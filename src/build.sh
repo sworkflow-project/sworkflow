@@ -128,7 +128,7 @@ kernel_build()
 	OUT_DIR="${out_dir:-out}"
 	export OUT_DIR
 
-	if [[ -z "$(command -v nproc)" ]]; then
+	if [[ -n "$(command -v nproc)" ]]; then
 		parallel_threads="$(nproc --all)"
 	else
 		parallel_threads="$(grep -c ^processor /proc/cpuinfo)"
