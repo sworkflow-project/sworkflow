@@ -72,19 +72,20 @@ do_kernel_modules()
 	fi
 	mkdir -p "${OUT_DIR}/dist/modules"
 
+	local modules_dir="${OUT_DIR}/modules/lib/modules/${kernel_release}"
+
 	modules=()
 
 	while IFS= read -r -d $'\0' file; do
 		modules+=("$file")
-	done < <(find "${OUT_DIR}/modules/lib/modules/" -name '*.ko' -print0)
+	done < <(find "$modules_dir" -name '*.ko' -print0)
 
 	for file in "${modules[@]}"; do
 		cp "$file" "$dist_path/modules/"
 	done
 
-	# cp $(find ${OUT_DIR}/modules/lib/modules/* -name '*.ko') $dist_path/modules/
-	cp "${OUT_DIR}"/modules/lib/modules/*/modules.{alias,dep,softdep} "$dist_path"/modules
-	cp "${OUT_DIR}"/modules/lib/modules/*/modules.order "$dist_path"/modules/modules.load
+	cp "$modules_dir"/modules.{alias,dep,softdep} "$dist_path"/modules
+	cp "$modules_dir"/modules.order "$dist_path"/modules/modules.load
 	sed -i 's/\(kernel\/[^: ]*\/\)\([^: ]*\.ko\)/\/vendor\/lib\/modules\/\2/g' "$dist_path"/modules/modules.dep
 	sed -i 's/.*\///g' "$dist_path"/modules/modules.load
 
@@ -206,7 +207,14 @@ kernel_build()
 		log_info "sworkflow: Installing modules"
 		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 
-		dup_modules="$(find "$OUT_DIR/modules" -name '*.ko' -print0 | xargs -0 -I{} basename {} | sort | uniq -d)"
+		if [[ ! -f "$OUT_DIR/System.map" ]]; then
+			log_error "error: System.map not found, cannot run depmod"
+			exit 1
+		fi
+
+		kernel_release="$(cat "$OUT_DIR/include/config/kernel.release")"
+
+		dup_modules="$(find "$OUT_DIR/modules/lib/modules/$kernel_release" -name '*.ko' -print0 | xargs -0 -I{} basename {} | sort | uniq -d)"
 		if [[ -n "$dup_modules" ]]; then
 			log_error "error: Duplicate kernel modules found:"
 			while IFS= read -r mod; do
@@ -214,13 +222,6 @@ kernel_build()
 			done <<< "$dup_modules"
 			exit 1
 		fi
-
-		if [[ ! -f "$OUT_DIR/System.map" ]]; then
-			log_error "error: System.map not found, cannot run depmod"
-			exit 1
-		fi
-
-		kernel_release="$(cat "$OUT_DIR/include/config/kernel.release")"
 		log_info "sworkflow: Running depmod for $kernel_release"
 		depmod_stderr="$(mktemp)"
 		depmod -ae -F "$OUT_DIR/System.map" -b "$OUT_DIR/modules" "$kernel_release" 2> "$depmod_stderr"
