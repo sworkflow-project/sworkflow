@@ -225,6 +225,23 @@ kernel_build()
 		fi
 		cat "$depmod_stderr" >&2
 		rm -f "$depmod_stderr"
+
+		if grep -q "CONFIG_MODULE_SIG_FORMAT=y" "$OUT_DIR/.config"; then
+			log_info "sworkflow: Signing kernel modules"
+			sign_file="$OUT_DIR/scripts/sign-file"
+			sign_key="$OUT_DIR/certs/signing_key.pem"
+			sign_cert="$OUT_DIR/certs/signing_key.x509"
+			if [[ ! -x "$sign_file" || ! -f "$sign_key" || ! -f "$sign_cert" ]]; then
+				log_error "error: Module signing requested but sign-file or keys not found"
+				exit 1
+			fi
+			while IFS= read -r -d $'\0' ko; do
+				"$sign_file" sha1 "$sign_key" "$sign_cert" "$ko" || {
+					log_error "error: Failed to sign $ko"
+					exit 1
+				}
+			done < <(find "$OUT_DIR/modules" -name '*.ko' -print0)
+		fi
 	fi
 
 	if [[ -n "$create_dtbo" ]]; then
