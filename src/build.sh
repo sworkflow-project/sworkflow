@@ -181,6 +181,9 @@ displayDeviceInfo()
 	log_info "HOST_OS_EXTRA=$HOST_OS_EXTRA"
 	log_info "HOST_PATH=$PATH"
 	log_info "OUT_DIR=$OUT_DIR"
+	if [[ -n "$ext_modules" ]]; then
+		log_info "EXT_MODULES=$ext_modules"
+	fi
 	log_info "============================================"
 }
 
