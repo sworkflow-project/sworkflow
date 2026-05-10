@@ -109,12 +109,12 @@ install_ext_modules()
 
 		log_info "sworkflow: Installing external module: $abs_mod_path"
 		if [[ "$mod_type" == "kbuild" ]]; then
-			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 KERNEL_UAPI_HEADERS_DIR="$OUT_DIR" modules_install; then
+			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 KERNEL_UAPI_HEADERS_DIR="$OUT_DIR" modules_install; then
 				log_error "error: External module install failed: $abs_mod_path"
 				exit 1
 			fi
 		else
-			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 KERNEL_UAPI_HEADERS_DIR="$OUT_DIR" modules_install; then
+			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 KERNEL_UAPI_HEADERS_DIR="$OUT_DIR" modules_install; then
 				log_error "error: External module install failed: $abs_mod_path"
 				exit 1
 			fi
@@ -145,12 +145,12 @@ build_ext_modules()
 
 		log_info "sworkflow: Building external module: $abs_mod_path"
 		if [[ "$mod_type" == "kbuild" ]]; then
-			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"; then
 				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
 		else
-			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"; then
 				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
