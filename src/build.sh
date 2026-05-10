@@ -189,6 +189,9 @@ displayDeviceInfo()
 	log_info "HOST_OS_EXTRA=$HOST_OS_EXTRA"
 	log_info "HOST_PATH=$PATH"
 	log_info "OUT_DIR=$OUT_DIR"
+	if [[ -n "$board_platform" ]]; then
+		log_info "BOARD_PLATFORM=$board_platform"
+	fi
 	if [[ -n "$ext_modules" ]]; then
 		log_info "EXT_MODULES=$ext_modules"
 		if [[ -n "$ext_modules_root" ]]; then
@@ -206,6 +209,10 @@ kernel_build()
 	OUT_DIR="${out_dir:-out}"
 	[[ "$OUT_DIR" != /* ]] && OUT_DIR="$PWD/$OUT_DIR"
 	export OUT_DIR
+
+	if [[ -n "$board_platform" ]]; then
+		export TARGET_BOARD_PLATFORM="$board_platform"
+	fi
 
 	if [[ -n "$(command -v nproc)" ]]; then
 		parallel_threads="$(nproc --all)"
