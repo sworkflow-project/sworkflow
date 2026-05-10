@@ -93,7 +93,7 @@ do_kernel_modules()
 
 install_ext_modules()
 {
-	local ext_mod_entry mod_path mod_type
+	local ext_mod_entry mod_path mod_type abs_mod_path
 	local -a ext_mod_list
 
 	read -ra ext_mod_list <<< "$ext_modules"
@@ -104,16 +104,17 @@ install_ext_modules()
 		if [[ "$mod_type" == "$mod_path" ]]; then
 			mod_type=""
 		fi
+		abs_mod_path="${ext_modules_root:+$ext_modules_root/}$mod_path"
 
-		log_info "sworkflow: Installing external module: $mod_path"
+		log_info "sworkflow: Installing external module: $abs_mod_path"
 		if [[ "$mod_type" == "kbuild" ]]; then
-			if ! make -C "$PWD" M="$mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 modules_install; then
-				log_error "error: External module install failed: $mod_path"
+			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 modules_install; then
+				log_error "error: External module install failed: $abs_mod_path"
 				exit 1
 			fi
 		else
-			if ! make -C "$mod_path" KERNEL_SRC="$PWD" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 modules_install; then
-				log_error "error: External module install failed: $mod_path"
+			if ! make -C "$abs_mod_path" KERNEL_SRC="$PWD" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 modules_install; then
+				log_error "error: External module install failed: $abs_mod_path"
 				exit 1
 			fi
 		fi
@@ -122,7 +123,7 @@ install_ext_modules()
 
 build_ext_modules()
 {
-	local ext_mod_entry mod_path mod_type
+	local ext_mod_entry mod_path mod_type abs_mod_path
 	local -a ext_mod_list
 
 	read -ra ext_mod_list <<< "$ext_modules"
@@ -133,21 +134,22 @@ build_ext_modules()
 		if [[ "$mod_type" == "$mod_path" ]]; then
 			mod_type=""
 		fi
+		abs_mod_path="${ext_modules_root:+$ext_modules_root/}$mod_path"
 
-		if [[ ! -d "$mod_path" ]]; then
-			log_error "error: External module path not found: $mod_path"
+		if [[ ! -d "$abs_mod_path" ]]; then
+			log_error "error: External module path not found: $abs_mod_path"
 			exit 1
 		fi
 
-		log_info "sworkflow: Building external module: $mod_path"
+		log_info "sworkflow: Building external module: $abs_mod_path"
 		if [[ "$mod_type" == "kbuild" ]]; then
-			if ! make -C "$PWD" M="$mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
-				log_error "error: External module build failed: $mod_path"
+			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
 		else
-			if ! make -C "$mod_path" KERNEL_SRC="$PWD" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
-				log_error "error: External module build failed: $mod_path"
+			if ! make -C "$abs_mod_path" KERNEL_SRC="$PWD" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
 		fi
@@ -183,6 +185,9 @@ displayDeviceInfo()
 	log_info "OUT_DIR=$OUT_DIR"
 	if [[ -n "$ext_modules" ]]; then
 		log_info "EXT_MODULES=$ext_modules"
+		if [[ -n "$ext_modules_root" ]]; then
+			log_info "EXT_MODULES_ROOT=$ext_modules_root"
+		fi
 	fi
 	log_info "============================================"
 }
