@@ -124,7 +124,7 @@ install_ext_modules()
 
 build_ext_modules()
 {
-	local ext_mod_entry mod_path mod_type abs_mod_path rpath
+	local ext_mod_entry mod_path mod_type abs_mod_path rpath kbuild_extra_symbols=""
 	local -a ext_mod_list
 
 	read -ra ext_mod_list <<< "$ext_modules"
@@ -145,15 +145,21 @@ build_ext_modules()
 
 		log_info "sworkflow: Building external module: $abs_mod_path"
 		if [[ "$mod_type" == "kbuild" ]]; then
-			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"; then
+			if ! make -C "$PWD" M="$abs_mod_path" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" \
+				${kbuild_extra_symbols:+KBUILD_EXTRA_SYMBOLS="$kbuild_extra_symbols"}; then
 				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
 		else
-			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"; then
+			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" \
+				${kbuild_extra_symbols:+KBUILD_EXTRA_SYMBOLS="$kbuild_extra_symbols"}; then
 				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
+		fi
+
+		if [[ -f "$abs_mod_path/Module.symvers" ]]; then
+			kbuild_extra_symbols="${kbuild_extra_symbols:+$kbuild_extra_symbols }$abs_mod_path/Module.symvers"
 		fi
 	done
 }
