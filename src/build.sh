@@ -157,9 +157,9 @@ kernel_build()
 		cc="CC=clang"
 		case "$device_arch" in
 			arm64) clang_triple="CLANG_TRIPLE=aarch64-linux-gnu-" ;;
-			arm)   clang_triple="CLANG_TRIPLE=arm-linux-gnu-" ;;
-			x86*)  clang_triple="CLANG_TRIPLE=x86_64-linux-gnu-" ;;
-			*)     clang_triple="CLANG_TRIPLE=aarch64-linux-gnu-" ;;
+			arm) clang_triple="CLANG_TRIPLE=arm-linux-gnu-" ;;
+			x86*) clang_triple="CLANG_TRIPLE=x86_64-linux-gnu-" ;;
+			*) clang_triple="CLANG_TRIPLE=aarch64-linux-gnu-" ;;
 		esac
 		MAKE+=("$cc" "$clang_triple")
 	fi
@@ -185,8 +185,7 @@ kernel_build()
 
 	displayDeviceInfo "$device"
 
-	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "${defconfigs[@]}"
-	if [[ $? -ne 0 ]]; then
+	if ! make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "${defconfigs[@]}"; then
 		log_error "error: Defconfig step failed!"
 		exit 1
 	fi
@@ -198,8 +197,7 @@ kernel_build()
 
 	start=$(date +%s)
 
-	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"
-	if [[ $? -ne 0 ]]; then
+	if ! make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"; then
 		log_error "error: Kernel build failed!"
 		exit 1
 	fi
@@ -225,7 +223,7 @@ kernel_build()
 		kernel_release="$(cat "$OUT_DIR/include/config/kernel.release")"
 		log_info "sworkflow: Running depmod for $kernel_release"
 		depmod_stderr="$(mktemp)"
-		depmod -ae -F "$OUT_DIR/System.map" -b "$OUT_DIR/modules" "$kernel_release" 2>"$depmod_stderr"
+		depmod -ae -F "$OUT_DIR/System.map" -b "$OUT_DIR/modules" "$kernel_release" 2> "$depmod_stderr"
 		if grep -q "needs unknown symbol" "$depmod_stderr"; then
 			cat "$depmod_stderr" >&2
 			rm -f "$depmod_stderr"
