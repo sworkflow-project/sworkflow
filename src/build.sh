@@ -203,6 +203,24 @@ kernel_build()
 	if [[ -n "$do_modules" ]]; then
 		log_info "sworkflow: Installing modules"
 		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
+
+		if [[ ! -f "$OUT_DIR/System.map" ]]; then
+			log_error "error: System.map not found, cannot run depmod"
+			exit 1
+		fi
+
+		kernel_release="$(cat "$OUT_DIR/include/config/kernel.release")"
+		log_info "sworkflow: Running depmod for $kernel_release"
+		depmod_stderr="$(mktemp)"
+		depmod -ae -F "$OUT_DIR/System.map" -b "$OUT_DIR/modules" "$kernel_release" 2>"$depmod_stderr"
+		if grep -q "needs unknown symbol" "$depmod_stderr"; then
+			cat "$depmod_stderr" >&2
+			rm -f "$depmod_stderr"
+			log_error "error: Kernel modules need unknown symbols"
+			exit 1
+		fi
+		cat "$depmod_stderr" >&2
+		rm -f "$depmod_stderr"
 	fi
 
 	if [[ -n "$create_dtbo" ]]; then
