@@ -91,6 +91,40 @@ do_kernel_modules()
 
 }
 
+build_ext_modules()
+{
+	local ext_mod_entry mod_path mod_type
+	local -a ext_mod_list
+
+	read -ra ext_mod_list <<< "$ext_modules"
+
+	for ext_mod_entry in "${ext_mod_list[@]}"; do
+		mod_path="${ext_mod_entry%%:*}"
+		mod_type="${ext_mod_entry#*:}"
+		if [[ "$mod_type" == "$mod_path" ]]; then
+			mod_type=""
+		fi
+
+		if [[ ! -d "$mod_path" ]]; then
+			log_error "error: External module path not found: $mod_path"
+			exit 1
+		fi
+
+		log_info "sworkflow: Building external module: $mod_path"
+		if [[ "$mod_type" == "kbuild" ]]; then
+			if ! make -C "$PWD" M="$mod_path" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+				log_error "error: External module build failed: $mod_path"
+				exit 1
+			fi
+		else
+			if ! make -C "$mod_path" KERNEL_SRC="$PWD" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+				log_error "error: External module build failed: $mod_path"
+				exit 1
+			fi
+		fi
+	done
+}
+
 displayDeviceInfo()
 {
 
@@ -201,6 +235,10 @@ kernel_build()
 	if ! make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"; then
 		log_error "error: Kernel build failed!"
 		exit 1
+	fi
+
+	if [[ -n "$ext_modules" ]]; then
+		build_ext_modules
 	fi
 
 	if [[ -n "$do_modules" ]]; then
