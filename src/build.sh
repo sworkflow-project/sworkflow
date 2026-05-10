@@ -182,6 +182,10 @@ kernel_build()
 	displayDeviceInfo "$device"
 
 	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" "${defconfigs[@]}"
+	if [[ $? -ne 0 ]]; then
+		log_error "error: Defconfig step failed!"
+		exit 1
+	fi
 
 	if [[ -n "$build_clean" ]]; then
 		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" clean
@@ -191,6 +195,10 @@ kernel_build()
 	start=$(date +%s)
 
 	make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}"
+	if [[ $? -ne 0 ]]; then
+		log_error "error: Kernel build failed!"
+		exit 1
+	fi
 
 	if [[ -n "$do_modules" ]]; then
 		log_info "sworkflow: Installing modules"
