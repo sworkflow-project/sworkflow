@@ -105,7 +105,7 @@ install_ext_modules()
 			mod_type=""
 		fi
 		abs_mod_path="${ext_modules_root:+$ext_modules_root/}$mod_path"
-		rpath="$(python3 -c 'import os,sys;print(os.path.relpath(*(sys.argv[1:])))' "${ext_modules_root:-$abs_mod_path}" "$PWD")"
+		rpath="$(python3 -c 'import os,sys;print(os.path.relpath(*(sys.argv[1:])))' "$abs_mod_path" "$PWD")"
 
 		log_info "sworkflow: Installing external module: $abs_mod_path"
 		if [[ "$mod_type" == "kbuild" ]]; then
@@ -114,7 +114,7 @@ install_ext_modules()
 				exit 1
 			fi
 		else
-			if ! make -C "$abs_mod_path" M="$rpath/$mod_path" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 KERNEL_UAPI_HEADERS_DIR="$OUT_DIR" modules_install; then
+			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH="$OUT_DIR/modules" INSTALL_MOD_STRIP=1 KERNEL_UAPI_HEADERS_DIR="$OUT_DIR" modules_install; then
 				log_error "error: External module install failed: $abs_mod_path"
 				exit 1
 			fi
@@ -136,7 +136,7 @@ build_ext_modules()
 			mod_type=""
 		fi
 		abs_mod_path="${ext_modules_root:+$ext_modules_root/}$mod_path"
-		rpath="$(python3 -c 'import os,sys;print(os.path.relpath(*(sys.argv[1:])))' "${ext_modules_root:-$abs_mod_path}" "$PWD")"
+		rpath="$(python3 -c 'import os,sys;print(os.path.relpath(*(sys.argv[1:])))' "$abs_mod_path" "$PWD")"
 
 		if [[ ! -d "$abs_mod_path" ]]; then
 			log_error "error: External module path not found: $abs_mod_path"
@@ -150,7 +150,7 @@ build_ext_modules()
 				exit 1
 			fi
 		else
-			if ! make -C "$abs_mod_path" M="$rpath/$mod_path" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
+			if ! make -C "$abs_mod_path" M="$rpath" KERNEL_SRC="$PWD" OUT_DIR="$OUT_DIR" O="$OUT_DIR" ARCH="$device_arch" "${MAKE[@]}"; then
 				log_error "error: External module build failed: $abs_mod_path"
 				exit 1
 			fi
