@@ -208,6 +208,15 @@ kernel_build()
 		log_info "sworkflow: Installing modules"
 		make O="$OUT_DIR" -j"$parallel_threads" ARCH="$device_arch" "${MAKE[@]}" INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
 
+		dup_modules="$(find "$OUT_DIR/modules" -name '*.ko' -print0 | xargs -0 -I{} basename {} | sort | uniq -d)"
+		if [[ -n "$dup_modules" ]]; then
+			log_error "error: Duplicate kernel modules found:"
+			while IFS= read -r mod; do
+				log_error "       $mod"
+			done <<< "$dup_modules"
+			exit 1
+		fi
+
 		if [[ ! -f "$OUT_DIR/System.map" ]]; then
 			log_error "error: System.map not found, cannot run depmod"
 			exit 1
