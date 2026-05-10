@@ -155,9 +155,13 @@ kernel_build()
 
 	if [[ -n "$use_clang" ]]; then
 		cc="CC=clang"
-		clang_triple="CLANG_TRIPLE=aarch64-linux-gnu-"
-		MAKE+=("$cc"
-			"$clang_triple")
+		case "$device_arch" in
+			arm64) clang_triple="CLANG_TRIPLE=aarch64-linux-gnu-" ;;
+			arm)   clang_triple="CLANG_TRIPLE=arm-linux-gnu-" ;;
+			x86*)  clang_triple="CLANG_TRIPLE=x86_64-linux-gnu-" ;;
+			*)     clang_triple="CLANG_TRIPLE=aarch64-linux-gnu-" ;;
+		esac
+		MAKE+=("$cc" "$clang_triple")
 	fi
 
 	if [[ -z "$device_arch" ]]; then
