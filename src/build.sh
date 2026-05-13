@@ -9,12 +9,13 @@
 . "$SW_SRC_DIR"/src/sw_functions.sh --source-only
 
 # Check if the kernel config already exists for a particular device.
-# Search order: 1) SW_CONFIG_DIR 2) Current directory 3) ./configs/
+# Search order: 1) Current directory 2) SW_CONFIG_DIR 3) ./configs/
 check_kernel()
 {
 	local device="$1"
 	local config_file="sworkflow.${device}.config"
 	local found_config=""
+	SWORKFLOW_CONFIG=""
 
 	if [[ -z "$device" ]]; then
 		log_error "error: Device name is empty!"
@@ -23,26 +24,26 @@ check_kernel()
 
 	log_info "sworkflow: Checking if kernel config exists for $device"
 
-	# Search in SW_CONFIG_DIR (system or user config directory)
-	if [[ -n "$SW_CONFIG_DIR" && -f "$SW_CONFIG_DIR/$config_file" ]]; then
-		found_config="$SW_CONFIG_DIR/$config_file"
-	# Search in current working directory
-	elif [[ -f "$(pwd)/$config_file" ]]; then
+	if [[ -f "$(pwd)/$config_file" ]]; then
 		found_config="$(pwd)/$config_file"
+	# Search in SW_CONFIG_DIR (system or user config directory)
+	elif [[ -n "$SW_CONFIG_DIR" && -f "$SW_CONFIG_DIR/$config_file" ]]; then
+		found_config="$SW_CONFIG_DIR/$config_file"
 	# Search in ./configs/ subdirectory
 	elif [[ -f "$(pwd)/configs/$config_file" ]]; then
 		found_config="$(pwd)/configs/$config_file"
 	fi
 
 	if [[ -n "$found_config" ]]; then
+		SWORKFLOW_CONFIG="$found_config"
 		log_info "sworkflow: Including $found_config"
 		# shellcheck source=/dev/null
 		. "$found_config"
 	else
 		log_error "error: No config file found for device: $device"
 		log_error "error: Searched in:"
-		log_error "       - $SW_CONFIG_DIR/"
 		log_error "       - $(pwd)/"
+		log_error "       - $SW_CONFIG_DIR/"
 		log_error "       - $(pwd)/configs/"
 		exit 125
 	fi
@@ -189,6 +190,7 @@ displayDeviceInfo()
 	log_info "HOST_OS_EXTRA=$HOST_OS_EXTRA"
 	log_info "HOST_PATH=$PATH"
 	log_info "OUT_DIR=$OUT_DIR"
+	log_info "SWORKFLOW_CONFIG=$SWORKFLOW_CONFIG"
 	if [[ -n "$board_platform" ]]; then
 		log_info "BOARD_PLATFORM=$board_platform"
 	fi
